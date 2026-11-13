@@ -3,6 +3,7 @@ import type { SyncUserResponse, ScoutyonUser } from '../types/auth.types';
 
 export async function syncUserWithBackend(
   accessToken: string,
+  idToken?: string | null,
 ): Promise<SyncUserResponse> {
   if (!accessToken.trim()) {
     throw new ApiError(0, 'Privy access token is not available.');
@@ -10,14 +11,20 @@ export async function syncUserWithBackend(
 
   const url = `${API_BASE_URL.replace(/\/$/, '')}/api/auth/sync`;
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+  };
+
+  if (idToken && idToken.trim()) {
+    headers['privy-id-token'] = idToken.trim();
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Network error';

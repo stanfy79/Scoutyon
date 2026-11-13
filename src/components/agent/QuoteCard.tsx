@@ -31,7 +31,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
       <div className="flex items-start justify-between gap-3 mb-2.5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded bg-indigo-950/60 text-indigo-400 border border-indigo-800/40">
+            <span className="p-1 rounded bg-[#696FFD]/10 text-[#696FFD] border border-[#696FFD]/25">
               <Sparkles className="w-3.5 h-3.5" />
             </span>
             <h4 className="text-sm font-bold text-gray-100">{quote.provider}</h4>
@@ -61,7 +61,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
             href={quote.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-[#696FFD] hover:text-[#8e93fe] transition-colors"
           >
             <span>Open quote source</span>
             <ExternalLink className="w-3 h-3" />

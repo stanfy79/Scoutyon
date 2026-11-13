@@ -99,13 +99,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-sm text-[11px] font-medium transition-colors ${
                     isActive
-                      ? 'bg-white/[0.07] text-gray-100 border border-white/15'
+                      ? 'bg-[#696FFD]/[0.08] text-gray-100 border border-[#696FFD]/25'
                       : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent'
                   }`
                 }
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span className="tracking-wide">{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#696FFD]' : ''}`} />
+                    <span className="tracking-wide">{item.label}</span>
+                  </>
+                )}
               </NavLink>
             );
           })}

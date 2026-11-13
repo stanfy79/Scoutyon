@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useIdentityToken } from '@privy-io/react-auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { setAccessTokenGetter } from '../api/client';
 import { syncUserWithBackend } from '../api/auth.api';
@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getAccessToken,
     logout: privyLogout,
   } = usePrivy();
+  const { identityToken } = useIdentityToken();
 
   const queryClient = useQueryClient();
 
@@ -64,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Privy access token could not be retrieved.');
       }
 
-      const syncResponse = await syncUserWithBackend(accessToken);
+      const syncResponse = await syncUserWithBackend(accessToken, identityToken);
       const { user: syncedUser } = syncResponse;
       setUser({
         id: syncedUser.id,
@@ -91,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       isSyncingRef.current = false;
     }
-  }, [ready, authenticated, privyUser, getAccessToken]);
+  }, [ready, authenticated, privyUser, getAccessToken, identityToken]);
 
   // Auto-trigger sync when Privy becomes authenticated
   useEffect(() => {

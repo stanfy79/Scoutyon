@@ -25,7 +25,7 @@ export const AgentActivity: React.FC<AgentActivityProps> = ({ steps, isStreaming
 
   const getStepIcon = (step: ActivityStep) => {
     if (step.status === 'running') {
-      return <Loader2 className="w-4 h-4 text-indigo-400 animate-spin shrink-0" />;
+      return <Loader2 className="w-4 h-4 text-[#696FFD] animate-spin shrink-0" />;
     }
     if (step.status === 'error') {
       return <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />;
@@ -40,7 +40,7 @@ export const AgentActivity: React.FC<AgentActivityProps> = ({ steps, isStreaming
       if (step.type === 'done') {
         return <CheckCheck className="w-4 h-4 text-emerald-400 shrink-0" />;
       }
-      return <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />;
+      return <CheckCircle2 className="w-4 h-4 text-[#696FFD] shrink-0" />;
     }
     return <Clock className="w-4 h-4 text-gray-500 shrink-0" />;
   };
@@ -55,7 +55,7 @@ export const AgentActivity: React.FC<AgentActivityProps> = ({ steps, isStreaming
         className="flex items-center justify-between px-4 py-3 bg-[#151B27] cursor-pointer hover:bg-[#1A2232] transition-colors"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-md bg-indigo-950/60 text-indigo-400 border border-indigo-800/40">
+          <div className="p-1.5 rounded-md bg-[#696FFD]/10 text-[#696FFD] border border-[#696FFD]/25">
             <Search className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
@@ -64,8 +64,8 @@ export const AgentActivity: React.FC<AgentActivityProps> = ({ steps, isStreaming
                 Agent Live Activity
               </span>
               {isStreaming && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse mr-1" />
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#696FFD]/10 text-[#696FFD] border border-[#696FFD]/25">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#696FFD] animate-pulse mr-1" />
                   Active
                 </span>
               )}
@@ -111,7 +111,7 @@ export const AgentActivity: React.FC<AgentActivityProps> = ({ steps, isStreaming
 
           {isStreaming && steps.length === 0 && (
             <div className="flex items-center gap-2 text-xs text-gray-400 py-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#696FFD]" />
               <span>Initializing autonomous agent & reasoning loop...</span>
             </div>
           )}

@@ -49,9 +49,9 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
     // Transaction statuses
     simulated: {
       label: 'Simulated',
-      bg: 'bg-purple-950/40',
-      text: 'text-purple-400',
-      border: 'border-purple-800/40',
+      bg: 'bg-[#696FFD]/10',
+      text: 'text-[#696FFD]',
+      border: 'border-[#696FFD]/25',
     },
     confirmed: {
       label: 'Confirmed',

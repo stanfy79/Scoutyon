@@ -30,7 +30,7 @@ export const ResearchSources: React.FC<ResearchSourcesProps> = ({ sources }) => 
   return (
     <div className="bg-[#121620] border border-[#202738] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Link2 className="w-4 h-4 text-indigo-400" />
+        <Link2 className="w-4 h-4 text-[#696FFD]" />
         <h4 className="text-xs font-semibold text-gray-200">
           Research sources ({sources.length})
         </h4>
@@ -43,13 +43,13 @@ export const ResearchSources: React.FC<ResearchSourcesProps> = ({ sources }) => 
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[#0E121A] hover:bg-[#161C28] border border-[#1D2433] text-gray-300 hover:text-indigo-300 transition-colors group text-xs"
+            className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[#0E121A] hover:bg-[#161C28] border border-[#1D2433] text-gray-300 hover:text-[#8e93fe] transition-colors group text-xs"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <Globe className="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-400 shrink-0" />
+              <Globe className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#696FFD] shrink-0" />
               <span className="font-medium truncate">{getCleanDomain(url)}</span>
             </div>
-            <ExternalLink className="w-3 h-3 text-gray-500 group-hover:text-indigo-400 shrink-0" />
+            <ExternalLink className="w-3 h-3 text-gray-500 group-hover:text-[#696FFD] shrink-0" />
           </a>
         ))}
       </div>

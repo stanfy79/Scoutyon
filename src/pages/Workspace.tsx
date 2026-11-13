@@ -156,7 +156,7 @@ export const Workspace: React.FC = () => {
               onClick={() => setMobileTab('chat')}
               className={`px-2 py-1 rounded text-[11px] font-medium transition-colors ${
                 mobileTab === 'chat'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-[#696FFD]/20 text-[#696FFD] border border-[#696FFD]/30'
                   : 'text-gray-400 hover:text-gray-200'
               }`}
             >
@@ -166,7 +166,7 @@ export const Workspace: React.FC = () => {
               onClick={() => setMobileTab('context')}
               className={`px-2 py-1 rounded text-[11px] font-medium transition-colors ${
                 mobileTab === 'context'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-[#696FFD]/20 text-[#696FFD] border border-[#696FFD]/30'
                   : 'text-gray-400 hover:text-gray-200'
               }`}
             >
@@ -255,7 +255,7 @@ export const Workspace: React.FC = () => {
           <div className="bg-[#121620] border border-[#202738] rounded-xl p-4">
             <div className="flex items-center justify-between text-xs mb-2">
               <div className="flex items-center gap-1.5 text-gray-300 font-semibold">
-                <Shield className="w-4 h-4 text-indigo-400" />
+                <Shield className="w-4 h-4 text-[#696FFD]" />
                 <span>Spending Policy</span>
               </div>
               <span

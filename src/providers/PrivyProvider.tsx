@@ -15,7 +15,7 @@ export const PrivyProvider: React.FC<PrivyProviderWrapperProps> = ({ children })
         loginMethods: ['email'],
         appearance: {
           theme: 'dark',
-          accentColor: '#6366F1',
+          accentColor: '#696FFD',
           showWalletLoginFirst: false,
         },
         embeddedWallets: {

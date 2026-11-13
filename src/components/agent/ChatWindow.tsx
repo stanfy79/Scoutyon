@@ -149,7 +149,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       {quotes.length > 0 && (
         <div className="mt-6 pt-4 border-t border-[#1F2636] space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+            <Sparkles className="w-4 h-4 text-[#696FFD]" />
             <span>Generated Purchase Quotes ({quotes.length})</span>
           </div>
 

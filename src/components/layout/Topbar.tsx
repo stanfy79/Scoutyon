@@ -113,8 +113,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         </div>
 
         {/* Gemini Engine Indicator */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#141923] text-indigo-300 border border-[#232B3B]">
-          <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#696FFD]/10 text-[#696FFD] border border-[#696FFD]/25">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#696FFD]" />
           <span>Gemini 3.8 Flash</span>
         </div>
       </div>
