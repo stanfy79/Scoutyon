@@ -1,4 +1,15 @@
+import type { PrivyWalletAction, TransferExecutableQuote, TransferQuotePreview } from './transfer.types';
+
 export type MessageRole = 'user' | 'assistant' | 'tool';
+export type ChatResponseType =
+  | 'research_result'
+  | 'general_response'
+  | 'transfer_quote_preview'
+  | 'transfer_preparation'
+  | 'transfer_authorization'
+  | 'transfer_status'
+  | 'transfer_error'
+  | 'normal_message';
 
 export interface ChatMessage {
   id: string;
@@ -8,6 +19,8 @@ export interface ChatMessage {
   timestamp: string;
   quoteId?: string;
   sources?: string[];
+  responseType?: ChatResponseType;
+  structuredData?: TransferQuotePreview | TransferExecutableQuote | PrivyWalletAction | Record<string, unknown>;
 }
 
 export type SessionStatus = 'active' | 'completed' | 'failed';
@@ -23,6 +36,12 @@ export interface AgentSessionSummary {
 }
 
 export interface AgentSessionDetail extends AgentSessionSummary {
+  transactionContext?: {
+    quoteId?: string | null;
+    transactionStatus?: string;
+    quoteExpiry?: string | null;
+    activeTransactionIntent?: string;
+  };
   messages: Array<{
     role: MessageRole;
     content: string;
@@ -55,9 +74,12 @@ export type SSEEvent =
   | { type: 'session'; data: { sessionId: string } }
   | { type: 'text'; data: { text: string } }
   | { type: 'tool_call'; data: { name: string; args: Record<string, unknown> } }
-  | { type: 'tool_result'; data: { name: string; preview?: string; quoteId?: string; error?: string } }
-  | { type: 'quote'; data: SSEQuoteData }
-  | { type: 'error'; data: { tool?: string; message: string } }
+  | { type: 'tool_result'; data: { name: string; preview?: string; quoteId?: string; error?: string; result?: unknown } }
+  | { type: 'quote'; data: SSEQuoteData | TransferQuotePreview | TransferExecutableQuote }
+  | { type: 'wallet_action'; data: PrivyWalletAction }
+  | { type: 'intent'; data: { intent?: string; status?: string; [key: string]: unknown } }
+  | { type: 'response_metadata'; data: { responseType: ChatResponseType; quoteId?: string } }
+  | { type: 'error'; data: { tool?: string; code?: string; message: string } }
   | { type: 'done'; data: Record<string, unknown> };
 
 export interface ProviderComparisonItem {

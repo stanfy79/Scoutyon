@@ -4,15 +4,11 @@ import {
   LayoutDashboard,
   Sparkles,
   History,
-  FileCheck,
   WalletCards,
   Receipt,
-  Building2,
-  ClipboardList,
   Settings,
   PlusCircle,
   LogOut,
-  ShieldCheck,
   Cpu,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -27,12 +23,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const navItems = [
-    { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { to: '/workspace', label: 'Workspace', icon: Sparkles },
+    { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { to: '/history', label: 'Research', icon: History },
-    { to: '/quotes', label: 'Quotations', icon: FileCheck },
-    { to: '/vendors', label: 'Vendors', icon: Building2 },
-    { to: '/purchases', label: 'Purchases', icon: ClipboardList },
     { to: '/budgets', label: 'Budgets', icon: WalletCards },
     { to: '/transactions', label: 'Activity', icon: Receipt },
     { to: '/settings', label: 'Settings', icon: Settings },
@@ -114,21 +107,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
         </nav>
-
-        {/* Payment availability depends on server-side configuration. */}
-        <div className="px-3 py-3 mx-3 my-2 bg-white/[0.025] border border-white/10 rounded-sm">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-gray-500 shrink-0" />
-            <div>
-              <div className="text-[11px] font-medium text-gray-200">
-                Quote-bound payments
-              </div>
-              <div className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-0.5">
-                <span>Availability configured by backend</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* User profile & Logout */}
         <div className="p-3 border-t border-white/10 bg-black/20">

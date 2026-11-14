@@ -19,12 +19,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         return { title: 'Workspace', breadcrumb: 'SCOUTYON /' };
       case '/history':
         return { title: 'Research history', breadcrumb: 'SCOUTYON /' };
-      case '/quotes':
-        return { title: 'Quotations', breadcrumb: 'SCOUTYON /' };
-      case '/vendors':
-        return { title: 'Vendors', breadcrumb: 'SCOUTYON /' };
-      case '/purchases':
-        return { title: 'Purchases', breadcrumb: 'SCOUTYON /' };
       case '/budgets':
         return { title: 'Budgets', breadcrumb: 'SCOUTYON /' };
       case '/transactions':

@@ -1,25 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useSendTransaction } from '@privy-io/react-auth';
 import { getSessions } from '../api/agent.api';
+import { submitTransferTransaction } from '../api/transfers.api';
 import { useAgent } from '../hooks/useAgent';
 import { useBudgets } from '../hooks/useBudgets';
-import { useQuotes } from '../hooks/useQuotes';
 import { ChatWindow } from '../components/agent/ChatWindow';
 import { ChatInput } from '../components/agent/ChatInput';
 import { AgentActivity } from '../components/agent/AgentActivity';
 import { ResearchSources } from '../components/agent/ResearchSources';
-import { QuoteCard } from '../components/agent/QuoteCard';
 import { ScoutyonGlyph } from '../components/agent/ScoutyonGlyph';
-import { PaymentPreparationModal } from '../components/quotes/PaymentPreparationModal';
-import { RejectModal } from '../components/quotes/RejectModal';
-import type { Quote } from '../types/quote.types';
-import type { AgentSessionSummary, SSEQuoteData } from '../types/agent.types';
+import type { AgentSessionSummary } from '../types/agent.types';
+import type { PrivyWalletAction } from '../types/transfer.types';
 import {
   Shield,
   RotateCcw,
   AlertCircle,
-  FileCheck,
   History,
   Plus,
   X,
@@ -33,7 +30,6 @@ export const Workspace: React.FC = () => {
     messages,
     activitySteps,
     sources,
-    sessionQuotes,
     currentSessionId,
     isLoadingSession,
     isStreaming,
@@ -47,7 +43,7 @@ export const Workspace: React.FC = () => {
   } = useAgent();
 
   const { budgets } = useBudgets();
-  const { preparePayment, confirmPayment, rejectQuote } = useQuotes();
+  const { sendTransaction } = useSendTransaction();
   const {
     data: sessions = [],
     isLoading: isSessionsLoading,
@@ -61,15 +57,10 @@ export const Workspace: React.FC = () => {
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<'chat' | 'context'>('chat');
   const [isSessionHistoryOpen, setIsSessionHistoryOpen] = useState(false);
+  const [isAuthorizingTransfer, setIsAuthorizingTransfer] = useState(false);
+  const [authorizationNotice, setAuthorizationNotice] = useState<string | null>(null);
   const restoredLocationKeyRef = useRef<string | null>(null);
 
-  // Modals for quote payment preparation and rejection
-  const [selectedQuoteForPayment, setSelectedQuoteForPayment] = useState<
-    Quote | SSEQuoteData | null
-  >(null);
-  const [selectedQuoteForRejection, setSelectedQuoteForRejection] = useState<
-    Quote | SSEQuoteData | null
-  >(null);
 
   const routeState = location.state as { initialGoal?: string; sessionId?: string } | null;
 
@@ -103,17 +94,25 @@ export const Workspace: React.FC = () => {
 
   const activeBudget = budgets.find((b) => b._id === selectedBudgetId);
 
-  const getSessionQuoteId = (quote: Quote | SSEQuoteData) =>
-    'quoteId' in quote ? quote.quoteId : quote._id;
-
-  const handleRejectClick = (quoteId: string) => {
-    const quote = sessionQuotes.find((item) => getSessionQuoteId(item) === quoteId);
-    if (quote) setSelectedQuoteForRejection(quote);
-  };
-
-  const handlePreparePaymentClick = (quoteId: string) => {
-    const quote = sessionQuotes.find((item) => getSessionQuoteId(item) === quoteId);
-    if (quote) setSelectedQuoteForPayment(quote);
+  const authorizeTransfer = async (action: PrivyWalletAction) => {
+    if (isAuthorizingTransfer) return;
+    setIsAuthorizingTransfer(true);
+    setAuthorizationNotice(null);
+    try {
+      const submitted = await sendTransaction({
+        from: action.from,
+        to: action.transaction.to,
+        data: action.transaction.data,
+        value: action.transaction.value,
+        chainId: action.chainId,
+      }, { address: action.from });
+      const result = await submitTransferTransaction(action.transferId, action.sessionId, submitted.hash);
+      setAuthorizationNotice(result.message || `Source transaction recorded. Current transfer status: ${result.status}.`);
+    } catch (authorizationError) {
+      setAuthorizationNotice(authorizationError instanceof Error ? authorizationError.message : 'Privy authorization or transfer submission failed.');
+    } finally {
+      setIsAuthorizingTransfer(false);
+    }
   };
 
   return (
@@ -170,7 +169,7 @@ export const Workspace: React.FC = () => {
                   : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              Intel ({sessionQuotes.length + sources.length})
+              Intel ({activitySteps.length + sources.length})
             </button>
           </div>
 
@@ -223,13 +222,14 @@ export const Workspace: React.FC = () => {
           {/* Conversation history area */}
           <ChatWindow
             messages={messages}
-            quotes={sessionQuotes}
             isStreaming={isStreaming}
             isLoading={isLoadingSession}
             onSelectPrompt={(p) => sendMessage(p)}
-            onPreparePayment={handlePreparePaymentClick}
-            onRejectQuote={handleRejectClick}
+            onAuthorizeTransfer={authorizeTransfer}
+            isAuthorizingTransfer={isAuthorizingTransfer}
           />
+
+          {authorizationNotice && <div role="status" className="border-t border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-gray-300">{authorizationNotice}</div>}
 
           {/* Chat input box */}
           <div className="z-10 shrink-0 border-t border-white/10 bg-[rgba(9,12,18,0.92)] p-3 backdrop-blur-md">
@@ -300,52 +300,8 @@ export const Workspace: React.FC = () => {
           {/* Sources cited during research */}
           <ResearchSources sources={sources} />
 
-          {/* Generated Purchase Quotes In Session */}
-          {sessionQuotes.length > 0 && (
-            <div className="bg-[#121620] border border-[#202738] rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-200">
-                <FileCheck className="w-4 h-4 text-blue-400" />
-                <span>Session Quotes ({sessionQuotes.length})</span>
-              </div>
-
-              <div className="space-y-3">
-                {sessionQuotes.map((q) => (
-                  <QuoteCard
-                    key={getSessionQuoteId(q)}
-                    quote={q}
-                    onPreparePayment={handlePreparePaymentClick}
-                    onReject={handleRejectClick}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Quote payment preparation is separate from transaction confirmation. */}
-      {selectedQuoteForPayment && (
-        <PaymentPreparationModal
-          key={getSessionQuoteId(selectedQuoteForPayment)}
-          quote={selectedQuoteForPayment}
-          isOpen
-          onClose={() => setSelectedQuoteForPayment(null)}
-          onPrepare={preparePayment}
-          onConfirm={confirmPayment}
-        />
-      )}
-
-      {selectedQuoteForRejection && (
-        <RejectModal
-          key={getSessionQuoteId(selectedQuoteForRejection)}
-          quote={selectedQuoteForRejection}
-          isOpen
-          onClose={() => setSelectedQuoteForRejection(null)}
-          onConfirm={async (id, reason) => {
-            await rejectQuote({ quoteId: id, reason });
-          }}
-        />
-      )}
     </div>
   );
 };

@@ -29,7 +29,7 @@ export const WalletProvisioningStatus: React.FC<WalletProvisioningStatusProps> =
         <div>
           <h3 className="text-base font-bold text-white">Your Scoutyon wallet is ready</h3>
           <p className="text-xs text-gray-400 mt-1">
-            An Ethereum embedded wallet has been provisioned for autonomous purchases.
+            Your embedded wallet is ready for cross-chain transfer authorization.
           </p>
         </div>
 

@@ -23,6 +23,9 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
   if (!transaction) return null;
 
   const quote = typeof transaction.quoteId === 'object' ? (transaction.quoteId as Quote) : null;
+  const metadataMessage = typeof transaction.metadata?.message === 'string'
+    ? transaction.metadata.message
+    : null;
 
   return (
     <Modal
@@ -37,7 +40,7 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
         <div className="flex items-center justify-between pb-3 border-b border-[#1F2636]">
           <div>
             <span className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold block">
-              Recipient Provider
+              Counterparty
             </span>
             <h3 className="text-lg font-bold text-white mt-0.5">
               {transaction.provider}
@@ -128,10 +131,10 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
         )}
 
         {/* Metadata notes */}
-        {transaction.metadata && (transaction.metadata as any).message && (
+        {metadataMessage && (
           <div className="p-3 bg-[#111622] border border-[#1F2636] rounded-xl text-xs text-gray-400">
             <span className="font-semibold text-gray-300 block mb-0.5">Execution Log:</span>
-            <span>{(transaction.metadata as any).message}</span>
+            <span>{metadataMessage}</span>
           </div>
         )}
 

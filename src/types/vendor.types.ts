@@ -1,10 +1,4 @@
-export type VendorVerificationStatus =
-  | 'verified'
-  | 'corroborated'
-  | 'unverified'
-  | 'contradicted'
-  | 'unavailable';
-
+export type VendorVerificationStatus = 'verified' | 'corroborated' | 'unverified' | 'contradicted' | 'unavailable';
 export type VendorDiscoveryStatus = 'pending' | 'completed' | 'failed' | 'no_results';
 
 export interface VendorEvidence {
@@ -22,22 +16,11 @@ export interface Vendor {
   domain?: string;
   description?: string;
   location?: string;
-  contact?: {
-    email?: string;
-    phone?: string;
-    address?: string;
-  };
+  contact?: { email?: string; phone?: string; address?: string };
   categories: string[];
   products: string[];
-  pricing?: {
-    currency?: string;
-    typicalPrice?: number;
-    notes?: string;
-  };
-  shipping?: {
-    countries?: string[];
-    notes?: string;
-  };
+  pricing?: { currency?: string; typicalPrice?: number; notes?: string };
+  shipping?: { countries?: string[]; notes?: string };
   refundPolicy?: string;
   paymentMethods: string[];
   verificationStatus: VendorVerificationStatus;
@@ -53,11 +36,7 @@ export interface VendorDiscoveryInput {
   requirement: string;
   category?: string;
   keywords?: string[];
-  budget?: {
-    currency?: string;
-    minimum?: number;
-    maximum?: number;
-  };
+  budget?: { currency?: string; minimum?: number; maximum?: number };
   location?: string;
   specifications?: string[];
   preferredCharacteristics?: string[];

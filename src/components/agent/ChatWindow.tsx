@@ -1,57 +1,37 @@
 import React, { useRef, useEffect } from 'react';
-import { Sparkles, ArrowRight, Search, FileText, Wallet, ClipboardList, ArrowLeftRight, Send, Activity } from 'lucide-react';
-import type { ChatMessage, SSEQuoteData } from '../../types/agent.types';
-import type { Quote } from '../../types/quote.types';
+import { ArrowRight, ArrowLeftRight, Send, Activity, Search, FileText, CircleHelp } from 'lucide-react';
+import type { ChatMessage } from '../../types/agent.types';
+import type { PrivyWalletAction } from '../../types/transfer.types';
 import { MessageBubble } from './MessageBubble';
-import { QuoteCard } from './QuoteCard';
 import { ScoutyonGlyph } from './ScoutyonGlyph';
 
 interface ChatWindowProps {
   messages: ChatMessage[];
-  quotes: (Quote | SSEQuoteData)[];
   isStreaming: boolean;
   isLoading?: boolean;
   error?: string | null;
   onSelectPrompt: (prompt: string) => void;
-  onPreparePayment?: (quoteId: string) => void;
-  onRejectQuote?: (quoteId: string) => void;
-  isRejectingQuote?: boolean;
+  onAuthorizeTransfer?: (action: PrivyWalletAction) => Promise<void>;
+  isAuthorizingTransfer?: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
-  quotes,
   isStreaming,
   isLoading = false,
   error,
   onSelectPrompt,
-  onPreparePayment,
-  onRejectQuote,
-  isRejectingQuote,
+  onAuthorizeTransfer,
+  isAuthorizingTransfer,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldFollowStream = useRef(true);
 
   const suggestedPrompts = [
     {
-      title: 'VENDOR DISCOVERY',
-      prompt: 'Find reliable laptop suppliers under $2,000.',
-      icon: Search,
-    },
-    {
-      title: 'QUOTE COMPARISON',
-      prompt: 'Compare quotations from three suppliers for 20 office chairs.',
-      icon: FileText,
-    },
-    {
-      title: 'BUDGET INTELLIGENCE',
-      prompt: 'Analyze my spending and show how much remains in my equipment budget.',
-      icon: Wallet,
-    },
-    {
-      title: 'PURCHASE MANAGEMENT',
-      prompt: 'Create a purchase request for 10 business laptops.',
-      icon: ClipboardList,
+      title: 'TRANSFER QUOTE',
+      prompt: 'Quote a cross-chain swap of 100 USDC on Base to NEAR, including expected output and minimum received.',
+      icon: ArrowLeftRight,
     },
     {
       title: 'CROSS-CHAIN SWAP',
@@ -60,7 +40,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     },
     {
       title: 'CROSS-CHAIN TRANSFER',
-      prompt: 'Send 0.5 ETH to this supported destination address.',
+      prompt: 'Send 0.5 ETH to a supported destination address.',
       icon: Send,
     },
     {
@@ -68,13 +48,33 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       prompt: 'Check the status of my last cross-chain transfer.',
       icon: Activity,
     },
+    {
+      title: 'COMPANY RESEARCH',
+      prompt: 'Research Stripe: summarize its products, recent developments, and reputation with sources.',
+      icon: Search,
+    },
+    {
+      title: 'SUPPLIER COMPARISON',
+      prompt: 'Compare three cloud storage providers for a small business by price, features, and reliability. Cite sources.',
+      icon: FileText,
+    },
+    {
+      title: 'CRYPTO PROJECT ANALYSIS',
+      prompt: 'Analyze the Arbitrum ecosystem, its main protocols, strengths, risks, and recent developments with sources.',
+      icon: Search,
+    },
+    {
+      title: 'GENERAL QUESTION',
+      prompt: 'Explain how cross-chain bridges work and the main security tradeoffs.',
+      icon: CircleHelp,
+    },
   ];
 
   useEffect(() => {
     if (scrollRef.current && shouldFollowStream.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' });
     }
-  }, [messages, isStreaming, quotes]);
+  }, [messages, isStreaming]);
 
   if (messages.length === 0) {
     return (
@@ -92,7 +92,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <div className="text-[10px] tracking-[.2em] text-gray-500">SCOUTYON / INTELLIGENCE WORKSPACE</div>
         <h2 className="mt-3 text-xl sm:text-2xl font-medium tracking-tight text-gray-100">Your interface to the open economy.</h2>
         <p className="mt-3 text-xs sm:text-sm text-gray-400 max-w-lg leading-relaxed">
-          Discover suppliers. Evaluate opportunities. Manage purchases. Move assets across chains.
+          Move assets across chains, investigate projects and companies, compare options, or ask Scoutyon anything.
         </p>
 
         {/* Suggested Prompts */}
@@ -136,7 +136,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       className="scoutyon-stream min-h-0 flex-1 overflow-y-auto p-4 md:p-5"
     >
       {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} isStreaming={isStreaming && message === messages[messages.length - 1]} />
+        <MessageBubble key={message.id} message={message} isStreaming={isStreaming && message === messages[messages.length - 1]} onTransferAction={onSelectPrompt} onAuthorizeTransfer={onAuthorizeTransfer} isAuthorizingTransfer={isAuthorizingTransfer} />
       ))}
 
       {error && (
@@ -145,27 +145,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       )}
 
-      {/* Render session quotes at the bottom of the conversation */}
-      {quotes.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-[#1F2636] space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
-            <Sparkles className="w-4 h-4 text-[#696FFD]" />
-            <span>Generated Purchase Quotes ({quotes.length})</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {quotes.map((quote) => (
-              <QuoteCard
-                key={'quoteId' in quote ? quote.quoteId : quote._id}
-                quote={quote}
-                onPreparePayment={onPreparePayment}
-                onReject={onRejectQuote}
-                isRejecting={isRejectingQuote}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

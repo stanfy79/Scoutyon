@@ -3,22 +3,28 @@ import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ExternalLink } from 'lucide-react';
 import { CopyButton } from '../common/CopyButton';
-import { TransferReviewCard } from './TransferReviewCard';
-import { parseTransferPrepareRequest } from './transferPrepareRequest';
+import type { ChatResponseType } from '../../types/agent.types';
+import { TransferLifecycleCard } from './TransferLifecycleCard';
+import type { PrivyWalletAction } from '../../types/transfer.types';
 
 interface SmartResponseRendererProps {
   content: string;
   isStreaming?: boolean;
+  responseType?: ChatResponseType;
+  structuredData?: Record<string, unknown>;
+  onTransferAction?: (prompt: string) => void;
+  onAuthorizeTransfer?: (action: PrivyWalletAction) => Promise<void>;
+  isAuthorizingTransfer?: boolean;
 }
 
 /**
  * The current agent API persists assistant content as Markdown text. Render the
  * structures that are actually present (not guessed charts or operation data).
  */
-export const SmartResponseRenderer: React.FC<SmartResponseRendererProps> = ({ content, isStreaming }) => {
-  const transferRequest = parseTransferPrepareRequest(content);
-  if (transferRequest) return <TransferReviewCard request={transferRequest} />;
-
+export const SmartResponseRenderer: React.FC<SmartResponseRendererProps> = ({ content, isStreaming, responseType, structuredData, onTransferAction, onAuthorizeTransfer, isAuthorizingTransfer }) => {
+  if (responseType && ['transfer_quote_preview', 'transfer_preparation', 'transfer_authorization'].includes(responseType) && structuredData) {
+    return <TransferLifecycleCard responseType={responseType} data={structuredData} onAction={onTransferAction} onAuthorize={onAuthorizeTransfer} isAuthorizing={isAuthorizingTransfer} />;
+  }
   const components: Components = {
     h1: ({ children }) => <h2 className="response-heading response-heading-primary">{children}</h2>,
     h2: ({ children }) => <h2 className="response-heading">{children}</h2>,

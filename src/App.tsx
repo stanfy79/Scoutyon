@@ -10,11 +10,8 @@ import { AuthPage } from './pages/AuthPage';
 import { Dashboard } from './pages/Dashboard';
 import { Workspace } from './pages/Workspace';
 import { ResearchHistory } from './pages/ResearchHistory';
-import { QuotesPage } from './pages/Quotes';
 import { BudgetsPage } from './pages/Budgets';
 import { TransactionsPage } from './pages/Transactions';
-import { VendorsPage } from './pages/Vendors';
-import { PurchasesPage } from './pages/Purchases';
 import { SettingsPage } from './pages/Settings';
 import { NotFound } from './pages/NotFound';
 
@@ -49,9 +46,6 @@ export function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/workspace" element={<Workspace />} />
                 <Route path="/history" element={<ResearchHistory />} />
-                <Route path="/quotes" element={<QuotesPage />} />
-                <Route path="/vendors" element={<VendorsPage />} />
-                <Route path="/purchases" element={<PurchasesPage />} />
                 <Route path="/budgets" element={<BudgetsPage />} />
                 <Route path="/transactions" element={<TransactionsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

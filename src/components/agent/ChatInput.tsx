@@ -24,7 +24,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   budgets = [],
   selectedBudgetId,
   onSelectBudget,
-  placeholder = 'Ask Scoutyon to research services, compare pricing, or find an API...',
+  placeholder = 'Ask about a transfer, research a company or project, compare options, or ask a question...',
 }) => {
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);

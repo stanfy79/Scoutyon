@@ -34,7 +34,7 @@ export const TransactionsPage: React.FC = () => {
           <span>Transactions & Settlement Ledger</span>
         </h2>
         <p className="text-xs text-gray-400 mt-0.5">
-          Immutable audit record of authorized purchases settled through NEAR Intents solver infrastructure.
+          Transfer and settlement activity recorded through NEAR Intents.
         </p>
       </div>
 

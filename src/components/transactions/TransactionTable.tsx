@@ -37,7 +37,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by provider or NEAR Intent ID..."
+            placeholder="Search by counterparty or NEAR Intent ID..."
             className="w-full bg-[#121620] border border-[#202738] rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
           />
         </div>
@@ -50,7 +50,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           <p className="text-xs text-gray-500 mt-0.5">
             {search
               ? 'No records match your query.'
-              : 'Approved quotes and payment settlements will appear here.'}
+              : 'Completed transfer and settlement records will appear here.'}
           </p>
         </div>
       ) : (
@@ -61,7 +61,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               <thead className="bg-[#161B26] border-b border-[#202738] text-gray-400 uppercase tracking-wider font-semibold text-[10px]">
                 <tr>
                   <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Provider / Vendor</th>
+                  <th className="px-4 py-3">Counterparty</th>
                   <th className="px-4 py-3">Amount</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">NEAR Intent ID</th>

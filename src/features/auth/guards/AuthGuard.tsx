@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { AuthLoading } from '../components/AuthLoading';
 import { WalletProvisioningStatus } from '../components/WalletProvisioningStatus';
 import { AuthError } from '../components/AuthError';
+import { LogOut } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     syncError,
     syncUser,
     user,
+    logout
   } = useAuth();
 
   // 1. Privy initialization check
@@ -60,6 +62,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
             }
             onRetry={syncUser}
           />
+          <button className="text-xs flex gap-2 p-2 text-gray-400 hover:text-gray-200 transition-colors"
+          onClick={logout}>
+            Logout
+            <LogOut className="w-4 h-4 mr-2" />
+          </button>
         </div>
       </div>
     );

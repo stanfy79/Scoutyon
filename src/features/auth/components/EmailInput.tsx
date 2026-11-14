@@ -30,10 +30,10 @@ export const EmailInput: React.FC<EmailInputProps> = ({
           <Cpu className="w-6 h-6" />
         </div>
         <h2 className="text-xl font-bold text-white tracking-tight">
-          Your AI agent for research, decisions and smarter purchasing.
+          AI research and cross-chain transfers, in one focused chat.
         </h2>
         <p className="text-xs text-gray-400 max-w-sm mx-auto leading-relaxed">
-          Tell Scoutyon what you need. Let it research the internet, compare options and prepare purchases within your spending limits.
+          Chat with Scoutyon to review and prepare cross-chain transfers.
         </p>
       </div>
 
@@ -87,7 +87,7 @@ export const EmailInput: React.FC<EmailInputProps> = ({
       </form>
 
       <p className="text-center text-[11px] text-gray-500">
-        By continuing, you agree to Scoutyon's terms of service and autonomous purchase policy.
+        By continuing, you agree to Scoutyon's terms of service.
       </p>
     </div>
   );

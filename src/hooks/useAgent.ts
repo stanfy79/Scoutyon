@@ -1,19 +1,19 @@
 import { useState, useRef, useCallback } from 'react';
 import { streamAgentChat, getSessionById } from '../api/agent.api';
-import { getQuotes } from '../api/quotes.api';
 import type {
   ChatMessage,
   ActivityStep,
-  SSEQuoteData,
   SSEEvent,
 } from '../types/agent.types';
-import type { Quote } from '../types/quote.types';
+import { parseExecutableQuote, parsePrivyAction, parseTransferPreview } from '../utils/transferPayload';
 
+function explicitlyReviewsTransfer(message: string): boolean {
+  return /\b(review|show|reopen|remind me of|details of)\b.*\b(quote|transfer|route)\b/i.test(message);
+}
 export function useAgent() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [activitySteps, setActivitySteps] = useState<ActivityStep[]>([]);
   const [sources, setSources] = useState<string[]>([]);
-  const [sessionQuotes, setSessionQuotes] = useState<(Quote | SSEQuoteData)[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(() =>
     typeof window === 'undefined' ? null : window.localStorage.getItem('scoutyon.activeSessionId'),
   );
@@ -26,6 +26,9 @@ export function useAgent() {
   const activeSessionRef = useRef<string | null>(currentSessionId);
   const operationRef = useRef(0);
   const isStreamingRef = useRef(false);
+  const shownTransferPreviewsRef = useRef(new Set<string>());
+  const intentRef = useRef('');
+  const activePersistedPreviewRef = useRef<import('../types/transfer.types').TransferQuotePreview | null>(null);
 
   const setActiveSession = useCallback((sessionId: string | null) => {
     activeSessionRef.current = sessionId;
@@ -65,7 +68,8 @@ export function useAgent() {
     setMessages([]);
     setActivitySteps([]);
     setSources([]);
-    setSessionQuotes([]);
+    shownTransferPreviewsRef.current.clear();
+    activePersistedPreviewRef.current = null;
     setActiveSession(null);
     setIsLoadingSession(false);
     setError(null);
@@ -82,7 +86,8 @@ export function useAgent() {
     setMessages([]);
     setActivitySteps([]);
     setSources([]);
-    setSessionQuotes([]);
+    shownTransferPreviewsRef.current.clear();
+    activePersistedPreviewRef.current = null;
     setError(null);
     setActiveSession(sessionId);
     try {
@@ -91,17 +96,6 @@ export function useAgent() {
       if (detail._id !== sessionId) {
         throw new Error('The backend returned a different session than the one requested.');
       }
-
-      let restoredQuotes: (Quote | SSEQuoteData)[] = [];
-      try {
-        restoredQuotes = await getQuotes(sessionId);
-      } catch (quotesError) {
-        if (operationId === operationRef.current) {
-          const message = quotesError instanceof Error ? quotesError.message : 'Unknown error';
-          setError(`Conversation restored, but its saved quotes could not be loaded: ${message}`);
-        }
-      }
-      if (operationId !== operationRef.current) return;
 
       const loadedMessages: ChatMessage[] = detail.messages.map((m, idx) => ({
         id: `${detail._id}-msg-${idx}`,
@@ -112,7 +106,20 @@ export function useAgent() {
       }));
 
       setMessages(loadedMessages);
-      setSessionQuotes(restoredQuotes);
+      const context = detail.transactionContext;
+      if (context?.transactionStatus === 'quote_preview' && context.quoteId &&
+        typeof context.quoteExpiry === 'string' && Date.parse(context.quoteExpiry) > Date.now()) {
+        try {
+          const cached = window.localStorage.getItem(`scoutyon.transferPreview.${sessionId}`);
+          const candidate = cached ? parseTransferPreview(JSON.parse(cached)) : null;
+          if (candidate && candidate.quoteId === context.quoteId && Date.parse(candidate.expiresAt) > Date.now()) {
+            activePersistedPreviewRef.current = candidate;
+            shownTransferPreviewsRef.current.add(candidate.quoteId);
+          }
+        } catch {
+          activePersistedPreviewRef.current = null;
+        }
+      }
       setSelectedBudgetId(detail.budgetId || '');
     } catch (err) {
       if (operationId === operationRef.current) {
@@ -152,7 +159,24 @@ export function useAgent() {
         timestamp: new Date().toISOString(),
       };
 
-      setMessages((prev) => [...prev, userMsg, assistantMsg]);
+      const previousPreview = explicitlyReviewsTransfer(trimmed)
+        ? [...messages].reverse().find((message) => message.responseType === 'transfer_quote_preview' && message.structuredData)?.structuredData ?? activePersistedPreviewRef.current
+        : undefined;
+      const reusablePreview = previousPreview ? parseTransferPreview(previousPreview) : null;
+      setMessages((prev) => [
+        ...prev,
+        userMsg,
+        ...(reusablePreview ? [{
+          id: `transfer-review-${reusablePreview.quoteId}-${Date.now()}`,
+          role: 'assistant' as const,
+          content: '',
+          timestamp: new Date().toISOString(),
+          responseType: 'transfer_quote_preview' as const,
+          quoteId: reusablePreview.quoteId,
+          structuredData: reusablePreview,
+        }] : []),
+        assistantMsg,
+      ]);
 
       // Set initial activity step
       const initialStep: ActivityStep = {
@@ -172,6 +196,8 @@ export function useAgent() {
       const activeBudgetId = budgetIdToUse !== undefined ? budgetIdToUse : selectedBudgetId;
 
       let currentAssistantText = '';
+      let assistantResponseType: ChatMessage['responseType'] = 'normal_message';
+      intentRef.current = '';
 
       const handleSSEEvent = (event: SSEEvent) => {
         if (operationId !== operationRef.current) return;
@@ -189,7 +215,7 @@ export function useAgent() {
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantMessageId
-                    ? { ...m, content: currentAssistantText }
+                    ? { ...m, content: currentAssistantText, responseType: assistantResponseType }
                     : m,
                 ),
               );
@@ -197,8 +223,70 @@ export function useAgent() {
             break;
           }
 
+          case 'intent': {
+            intentRef.current = event.data.intent ?? '';
+            const classifiedResponse: Record<string, ChatMessage['responseType']> = {
+              general_chat: 'general_response',
+              transfer_quote_request: 'transfer_quote_preview',
+              transfer_execute_request: 'transfer_quote_preview',
+              transfer_prepare_request: 'transfer_preparation',
+              transfer_confirm_request: 'transfer_authorization',
+              transfer_status_request: 'transfer_status',
+            };
+            assistantResponseType = classifiedResponse[intentRef.current] ?? 'normal_message';
+            setMessages((prev) => prev.map((message) => message.id === assistantMessageId
+              ? { ...message, responseType: assistantResponseType }
+              : message));
+            if (['transfer_prepare_request', 'transfer_confirm_request', 'transfer_status_request'].includes(intentRef.current)) {
+              activePersistedPreviewRef.current = null;
+              setMessages((prev) => prev.map((message) => message.responseType === 'transfer_quote_preview'
+                ? { ...message, responseType: 'normal_message', structuredData: undefined }
+                : message));
+            }
+            break;
+          }
+
+          case 'quote': {
+            const payload = event.data;
+            if (typeof payload === 'object' && payload !== null && 'kind' in payload && payload.kind === 'swap_preview') {
+              const preview = parseTransferPreview(payload);
+              const allowedIntent = ['transfer_quote_request', 'transfer_execute_request', 'transfer_prepare_request'].includes(intentRef.current);
+              if (preview && allowedIntent && !shownTransferPreviewsRef.current.has(preview.quoteId)) {
+                shownTransferPreviewsRef.current.add(preview.quoteId);
+                activePersistedPreviewRef.current = preview;
+                const previewSessionId = activeSessionRef.current;
+                if (previewSessionId && typeof window !== 'undefined') {
+                  window.localStorage.setItem(`scoutyon.transferPreview.${previewSessionId}`, JSON.stringify(preview));
+                }
+                setMessages((prev) => [...prev.filter((message) => message.responseType !== 'transfer_quote_preview'), { id: `transfer-preview-${preview.quoteId}-${Date.now()}`, role: 'assistant', content: '', timestamp: new Date().toISOString(), responseType: 'transfer_quote_preview', quoteId: preview.quoteId, structuredData: preview }]);
+              }
+            } else if (typeof payload === 'object' && payload !== null && 'kind' in payload && payload.kind === 'swap_executable_quote') {
+              const prepared = parseExecutableQuote(payload);
+              if (prepared && intentRef.current === 'transfer_prepare_request' && !shownTransferPreviewsRef.current.has(prepared.transfer.id)) {
+                shownTransferPreviewsRef.current.add(prepared.transfer.id);
+                setMessages((prev) => [...prev, { id: `transfer-preparation-${prepared.transfer.id}`, role: 'assistant', content: '', timestamp: new Date().toISOString(), responseType: 'transfer_preparation', quoteId: prepared.transfer.id, structuredData: prepared }]);
+              }
+            }
+            break;
+          }
+
+          case 'wallet_action': {
+            const action = parsePrivyAction(event.data);
+            if (action && intentRef.current === 'transfer_confirm_request' && !shownTransferPreviewsRef.current.has(`auth:${action.transferId}`)) {
+              shownTransferPreviewsRef.current.add(`auth:${action.transferId}`);
+              setMessages((prev) => [...prev, { id: `transfer-authorization-${action.transferId}`, role: 'assistant', content: '', timestamp: new Date().toISOString(), responseType: 'transfer_authorization', quoteId: action.transferId, structuredData: action }]);
+            }
+            break;
+          }
+
           case 'tool_call': {
             const { name, args } = event.data;
+            if (['fetch_page', 'search_vendors', 'create_quote'].includes(name)) {
+              assistantResponseType = 'research_result';
+              setMessages((prev) => prev.map((message) => message.id === assistantMessageId
+                ? { ...message, responseType: assistantResponseType }
+                : message));
+            }
             if (name === 'fetch_page') {
               const url = (args?.url as string) || '';
               if (url) {
@@ -214,26 +302,6 @@ export function useAgent() {
                   status: 'running',
                   timestamp: new Date().toISOString(),
                   metadata: { url },
-                },
-              ]);
-            } else if (name === 'create_quote') {
-              const provider = (args?.provider as string) || 'Provider';
-              const price = args.price;
-              const currency = args.currency;
-              const priceDetails =
-                (typeof price === 'string' || typeof price === 'number') &&
-                typeof currency === 'string'
-                  ? `Price: ${price} ${currency}`
-                  : undefined;
-              setActivitySteps((prev) => [
-                ...prev,
-                {
-                  id: `tool-${Date.now()}-${Math.random()}`,
-                  type: 'quote',
-                  title: `Generating purchase quote for ${provider}`,
-                  details: priceDetails,
-                  status: 'running',
-                  timestamp: new Date().toISOString(),
                 },
               ]);
             } else {
@@ -274,37 +342,14 @@ export function useAgent() {
             break;
           }
 
-          case 'quote': {
-            const q = event.data;
-            setSessionQuotes((prev) => {
-              const exists = prev.some((item) =>
-                'quoteId' in item ? item.quoteId === q.quoteId : item._id === q.quoteId,
-              );
-              if (exists) return prev;
-              return [...prev, q];
-            });
-
-            // If quote has a sourceUrl, collect it
-            if (q.sourceUrl) {
-              setSources((prev) => (prev.includes(q.sourceUrl) ? prev : [...prev, q.sourceUrl]));
-            }
-
-            setActivitySteps((prev) => [
-              ...prev,
-              {
-                id: `quote-${Date.now()}`,
-                type: 'quote',
-                title: `Purchase Quote Verified: ${q.provider} (${q.price} ${q.currency})`,
-                details: q.description,
-                status: 'success',
-                timestamp: new Date().toISOString(),
-              },
-            ]);
-            break;
-          }
-
           case 'error': {
             const err = event.data;
+            if (err.tool && ['get_transfer_quote', 'prepare_transfer', 'confirm_transaction', 'get_transaction_status'].includes(err.tool)) {
+              assistantResponseType = 'transfer_error';
+              setMessages((prev) => prev.map((message) => message.id === assistantMessageId
+                ? { ...message, responseType: assistantResponseType }
+                : message));
+            }
             setActivitySteps((prev) => [
               ...prev,
               {
@@ -316,6 +361,14 @@ export function useAgent() {
                 timestamp: new Date().toISOString(),
               },
             ]);
+            break;
+          }
+
+          case 'response_metadata': {
+            assistantResponseType = event.data.responseType;
+            setMessages((prev) => prev.map((message) => message.id === assistantMessageId
+              ? { ...message, responseType: assistantResponseType, quoteId: event.data.quoteId }
+              : message));
             break;
           }
 
@@ -368,14 +421,13 @@ export function useAgent() {
         }
       }
     },
-    [isLoadingSession, selectedBudgetId, setActiveSession],
+    [isLoadingSession, messages, selectedBudgetId, setActiveSession],
   );
 
   return {
     messages,
     activitySteps,
     sources,
-    sessionQuotes,
     currentSessionId,
     isLoadingSession,
     isStreaming,
