@@ -1,75 +1,85 @@
-# React + TypeScript + Vite
+# Scoutyon — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Your AI-powered gateway to research and cross-chain transactions.**
 
-Currently, two official plugins are available:
+Scoutyon is a conversational interface that makes interacting with Web3 simpler. Instead of navigating multiple platforms, researching manually, or dealing with complicated blockchain workflows, users can interact with an AI assistant using natural language.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The frontend provides the interface through which users research opportunities, explore information, request cross-chain transfer quotes, review transactions and monitor their progress.
 
-## React Compiler
+## Overview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Cross-chain transactions and Web3 research can be unnecessarily complicated. Users often need to switch between applications, understand different blockchain networks, compare assets and manually navigate transaction workflows.
 
-## Expanding the ESLint configuration
+Scoutyon brings these experiences together in one conversational workspace.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Through its AI-powered chat interface, users can:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Research crypto projects, companies, products and services.
+- Compare providers, features, pricing and available options.
+- Investigate project legitimacy and reputation using available evidence.
+- Request cross-chain transfer quotes.
+- Review transaction details before authorization.
+- Authorize supported transactions through an embedded wallet.
+- Track transfer progress and settlement status.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Key Features
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### AI Chat Interface
+A conversational workspace where users can interact with Scoutyon using natural language. The interface supports research requests, follow-up questions and transaction-related conversations.
 
-```
+### Research and Discovery
+Users can investigate projects, companies, products and services, compare alternatives and receive evidence-backed information with relevant sources.
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### Cross-Chain Transfers
+Users can request quotes for supported cross-chain transfers, review the available route and understand the expected transaction outcome before proceeding.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Transaction Review and Authorization
+Transaction details are presented for review before users explicitly authorize supported transactions through their embedded wallet.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Transfer Tracking
+Users can follow the progress of their transfers and view the reported transaction status.
 
-```
+### Persistent Conversations
+Users can revisit previous chat sessions and continue conversations without unnecessarily losing their transaction context.
+
+## Technology Integrations
+
+Scoutyon brings together AI, embedded wallets and cross-chain infrastructure.
+
+| Technology | Purpose |
+|---|---|
+| Gemini | AI-powered conversation, reasoning and research |
+| NEAR Intents | Cross-chain asset routing and swaps |
+| Privy | Embedded wallets and transaction authorization |
+| Backend API | Application logic, data and transaction coordination |
+
+### Why NEAR Intents?
+
+NEAR Intents enables Scoutyon to abstract much of the complexity involved in moving assets across supported blockchain networks. Users can request cross-chain transfers through a conversational interface instead of manually navigating different bridging platforms.
+
+## Frontend Responsibilities
+
+The frontend is responsible for:
+
+- Rendering the conversational interface.
+- Managing chat sessions and conversation state.
+- Displaying AI-generated research and responses.
+- Presenting transfer quotes and transaction details.
+- Handling user interactions and authorization flows.
+- Communicating with the Scoutyon backend API.
+- Displaying transfer status and relevant feedback.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (LTS recommended)
+- npm, yarn or pnpm
+- Access to the Scoutyon backend API
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone <FRONTEND_REPOSITORY_URL>
